@@ -1,29 +1,13 @@
 <?php
+$host = 'mysql';
+$db   = 'eventnow_db';
+$user = 'root';
+$pass = 'root';
 
-declare(strict_types=1);
-
-function database(): PDO
-{
-    static $connection = null;
-
-    if ($connection instanceof PDO) {
-        return $connection;
-    }
-
-    $host = getenv('DB_HOST') ?: 'db';
-    $port = getenv('DB_PORT') ?: '3306';
-    $database = getenv('DB_DATABASE') ?: 'integrador';
-    $username = getenv('DB_USERNAME') ?: 'integrador';
-    $password = getenv('DB_PASSWORD') ?: '';
-
-    $dsn = "mysql:host={$host};port={$port};dbname={$database};charset=utf8mb4";
-
-    $connection = new PDO($dsn, $username, $password, [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        PDO::ATTR_EMULATE_PREPARES => false,
-    ]);
-
-    return $connection;
+try {
+    $pdo = new PDO("mysql:host=$host;dbname=$db;charset=utf8", $user, $pass);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+} catch (PDOException $e) {
+    die("Erro na conexão com o banco de dados: " . $e->getMessage());
 }
-
+?>
