@@ -1,85 +1,64 @@
-DROP DATABASE IF EXISTS eventnow;
-CREATE DATABASE eventnow CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE eventnow;
+SET NAMES utf8mb4;
 
 CREATE TABLE usuarios (
   id INT AUTO_INCREMENT PRIMARY KEY,
   nome VARCHAR(100) NOT NULL,
-  email VARCHAR(120) NOT NULL UNIQUE,
-  cpf VARCHAR(14) UNIQUE,
-  senha_hash VARCHAR(255) NOT NULL,
-  tipo ENUM('organizador','participante') NOT NULL DEFAULT 'participante',
+  email VARCHAR(150) NOT NULL UNIQUE,
+  cpf CHAR(11) NULL UNIQUE,
+  senha VARCHAR(255) NOT NULL,
   criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
-
-CREATE TABLE categorias (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  nome VARCHAR(60) NOT NULL UNIQUE
-) ENGINE=InnoDB;
+) CHARACTER SET utf8mb4;
 
 CREATE TABLE eventos (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  titulo VARCHAR(150) NOT NULL,
-  descricao TEXT,
-  data_inicio DATETIME NOT NULL,
-  data_fim DATETIME NOT NULL,
-  local VARCHAR(150) NOT NULL,
-  cidade VARCHAR(80) NOT NULL,
-  imagem VARCHAR(255),
-  preco DECIMAL(10,2) NOT NULL DEFAULT 0,
-  vagas_total INT NOT NULL,
-  categoria_id INT NOT NULL,
   organizador_id INT NOT NULL,
-  FOREIGN KEY (categoria_id) REFERENCES categorias(id),
-  FOREIGN KEY (organizador_id) REFERENCES usuarios(id)
-) ENGINE=InnoDB;
+  titulo VARCHAR(150) NOT NULL,
+  descricao TEXT NOT NULL,
+  categoria VARCHAR(30) NOT NULL,
+  data_evento DATETIME NOT NULL,
+  hora_fim TIME NULL,
+  local_nome VARCHAR(120) NOT NULL,
+  endereco VARCHAR(200) NOT NULL,
+  cidade VARCHAR(80) NOT NULL,
+  uf CHAR(2) NOT NULL,
+  capacidade INT NOT NULL,
+  preco DECIMAL(10,2) NOT NULL DEFAULT 0,
+  imagem VARCHAR(255) NULL,
+  criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (organizador_id) REFERENCES usuarios(id) ON DELETE CASCADE
+) CHARACTER SET utf8mb4;
 
 CREATE TABLE inscricoes (
   id INT AUTO_INCREMENT PRIMARY KEY,
   evento_id INT NOT NULL,
   usuario_id INT NOT NULL,
-  data_inscricao DATETIME DEFAULT CURRENT_TIMESTAMP,
-  status ENUM('ativa','cancelada') NOT NULL DEFAULT 'ativa',
+  criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   UNIQUE KEY uq_inscricao (evento_id, usuario_id),
   FOREIGN KEY (evento_id) REFERENCES eventos(id) ON DELETE CASCADE,
   FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
-) ENGINE=InnoDB;
+) CHARACTER SET utf8mb4;
 
-CREATE TABLE interesses (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  usuario_id INT NOT NULL,
-  categoria_id INT NOT NULL,
-  UNIQUE KEY uq_interesse (usuario_id, categoria_id),
-  FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE,
-  FOREIGN KEY (categoria_id) REFERENCES categorias(id) ON DELETE CASCADE
-) ENGINE=InnoDB;
+-- Dados de demonstração. Senha de todos os usuários: 123456
+SET @hash = '$2b$10$abcdefghijklmnopqrstuuxD0vCwu/f2ahNVJLL35ZYA2xuiRyPH6';
+SET @mes_anterior = DATE_SUB(DATE_FORMAT(NOW(), '%Y-%m-01'), INTERVAL 10 DAY);
 
--- DADOS INICIAIS (senha de todos os usuários de teste: password)
-INSERT INTO categorias (nome) VALUES ('Tecnologia'),('Design'),('Música'),('Marketing'),('Fotografia');
+INSERT INTO usuarios (nome, email, cpf, senha) VALUES
+('Studio Imagens', 'organizador@eventnow.com', '12345678909', @hash);
 
-INSERT INTO usuarios (nome,email,cpf,senha_hash,tipo) VALUES
-('Studio Imagens','studio@eventnow.com','111.111.111-11','$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi','organizador'),
-('Tech Hub Eventos','techhub@eventnow.com','222.222.222-22','$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi','organizador'),
-('Bruno Lima','bruno@email.com','333.333.333-33','$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi','participante'),
-('Carla Dias','carla@email.com','444.444.444-44','$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi','participante'),
-('Daniela Alves','daniela@email.com','555.555.555-55','$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi','participante');
+INSERT INTO usuarios (nome, email, senha)
+WITH RECURSIVE n(i) AS (SELECT 1 UNION ALL SELECT i + 1 FROM n WHERE i < 40)
+SELECT CONCAT('Participante ', i), CONCAT('participante', i, '@email.com'), @hash FROM n;
 
-INSERT INTO eventos (titulo,descricao,data_inicio,data_fim,local,cidade,imagem,preco,vagas_total,categoria_id,organizador_id) VALUES
-('Workshop de Fotografia Digital','Aprenda técnicas essenciais para capturar imagens incríveis, desde composição básica até edição avançada. Ideal para entusiastas e iniciantes que desejam aprimorar suas habilidades.','2026-11-18 19:30:00','2026-11-18 21:30:00','Auditório SP - Rua Augusta, 1200, Consolação','São Paulo-SP',NULL,80.00,120,5,1),
-('Feira de Design Criativo','Exposição de marcas, artistas e tendências do design.','2026-11-25 10:00:00','2026-11-25 18:00:00','Pavilhão Criativo','São Paulo-SP',NULL,40.00,300,2,1),
-('Festival de Música Indie','Grandes artistas, boa energia e muita música.','2026-11-28 16:00:00','2026-11-28 23:00:00','Arena Rio','Rio de Janeiro-RJ',NULL,150.00,500,3,2),
-('Summit de Tecnologia','Palestras, network e muito mais sobre o futuro da tecnologia.','2026-12-12 09:00:00','2026-12-12 18:00:00','Tech Hub','São Paulo-SP',NULL,200.00,400,1,2),
-('Workshop de Marketing','Aprenda estratégias práticas com especialistas da área.','2026-12-07 14:00:00','2026-12-07 17:00:00','Sala de Reuniões Centro','São Paulo-SP',NULL,60.00,30,4,1);
+INSERT INTO eventos (organizador_id, titulo, descricao, categoria, data_evento, hora_fim, local_nome, endereco, cidade, uf, capacidade, preco) VALUES
+(1, 'Workshop de Fotografia Digital', 'Aprenda técnicas essenciais para capturar imagens incríveis, desde composição básica até edição avançada. Ideal para entusiastas e iniciantes que desejam ativar suas habilidades.', 'design', DATE_ADD(CURDATE(), INTERVAL 14 DAY) + INTERVAL '19:30' HOUR_MINUTE, '21:30', 'Auditório SP', 'Rua Augusta, 1200, Consolação', 'São Paulo', 'SP', 50, 80.00),
+(1, 'Feira de Design Criativo', 'Exposição de marcas, artistas e tendências do design.', 'design', DATE_ADD(CURDATE(), INTERVAL 20 DAY) + INTERVAL '10:00' HOUR_MINUTE, '18:00', 'Pavilhão Criativo', 'Av. Paulista, 900', 'São Paulo', 'SP', 300, 40.00),
+(1, 'Festival de Música Indie', 'Grandes artistas, boa energia e muita música.', 'música', DATE_ADD(CURDATE(), INTERVAL 25 DAY) + INTERVAL '16:00' HOUR_MINUTE, '23:59', 'Club Arena', 'Rua da Lapa, 300', 'Rio de Janeiro', 'RJ', 40, 120.00),
+(1, 'Summit de Tecnologia', 'Palestras, network e muito mais sobre o futuro da tecnologia.', 'tecnologia', DATE_ADD(CURDATE(), INTERVAL 30 DAY) + INTERVAL '09:00' HOUR_MINUTE, '18:00', 'Tech Hub', 'Rua Funchal, 500, Vila Olímpia', 'São Paulo', 'SP', 250, 150.00),
+(1, 'Workshop de Marketing', 'Aprenda estratégias práticas com especialistas da área.', 'tecnologia', DATE_ADD(CURDATE(), INTERVAL 35 DAY) + INTERVAL '14:00' HOUR_MINUTE, '17:00', 'Sala de Reuniões', 'Rua Oscar Freire, 100', 'São Paulo', 'SP', 30, 60.00);
 
-INSERT INTO inscricoes (evento_id,usuario_id,data_inscricao,status) VALUES
-(1,3,'2026-09-20 10:00:00','ativa'),
-(1,4,'2026-10-05 11:30:00','ativa'),
-(1,5,NOW(),'ativa'),
-(2,3,'2026-09-25 09:00:00','ativa'),
-(2,4,NOW(),'ativa'),
-(3,3,NOW(),'ativa'),
-(3,5,NOW(),'cancelada'),
-(4,4,'2026-10-10 15:00:00','ativa'),
-(5,3,NOW(),'ativa');
-
-INSERT INTO interesses (usuario_id,categoria_id) VALUES (3,1),(3,5),(4,2),(4,3),(5,4);
+-- Inscrições: parte no mês anterior, parte neste mês (alimenta os percentuais do dashboard)
+INSERT INTO inscricoes (evento_id, usuario_id, criado_em) SELECT 1, id, IF(id <= 15, @mes_anterior, NOW()) FROM usuarios WHERE id BETWEEN 2 AND 36;
+INSERT INTO inscricoes (evento_id, usuario_id, criado_em) SELECT 2, id, IF(id <= 15, @mes_anterior, NOW()) FROM usuarios WHERE id BETWEEN 2 AND 21;
+INSERT INTO inscricoes (evento_id, usuario_id, criado_em) SELECT 3, id, IF(id <= 15, @mes_anterior, NOW()) FROM usuarios WHERE id BETWEEN 2 AND 41;
+INSERT INTO inscricoes (evento_id, usuario_id, criado_em) SELECT 4, id, IF(id <= 15, @mes_anterior, NOW()) FROM usuarios WHERE id BETWEEN 2 AND 31;
+INSERT INTO inscricoes (evento_id, usuario_id, criado_em) SELECT 5, id, IF(id <= 15, @mes_anterior, NOW()) FROM usuarios WHERE id BETWEEN 2 AND 29;
