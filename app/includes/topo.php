@@ -13,7 +13,9 @@ $msg = flash();
 <body>
 <?php if (empty($painel)): ?>
 <header class="topo">
-  <a class="logo" href="index.php" aria-label="EventNow, início"><span class="logo-e">E</span><span class="logo-nome">EVENTNOW<small>DESDE 2026</small></span></a>
+  <a href="index.php" class="logo-img">
+    <img src="assets/img/logo.png" alt="EventNow" style="height:60px;width:auto;display:block">
+  </a>
   <nav class="menu">
     <a href="index.php"><?= ic('casa') ?> Início</a>
     <a href="index.php#eventos"><?= ic('festa') ?> Eventos</a>
