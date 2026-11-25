@@ -1,24 +1,21 @@
+version: '3.8'
+
 services:
   app:
     build: .
-    environment:
-      DB_HOST: db
-      DB_PORT: 3306
-      DB_DATABASE: ${DB_DATABASE:-integrador}
-      DB_USERNAME: ${DB_USERNAME:-integrador}
-      DB_PASSWORD: ${DB_PASSWORD:-Senai123}
-    depends_on:
-      - db
-
-  db:
-    build: ./database
-    environment:
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-Senai123}
-      MYSQL_DATABASE: ${DB_DATABASE:-integrador}
-      MYSQL_USER: ${DB_USERNAME:-integrador}
-      MYSQL_PASSWORD: ${DB_PASSWORD:-Senai123}
+    ports:
+      - "8000:80"
     volumes:
-      - db_data:/var/lib/mysql
+      - ./app:/var/www/html
+    depends_on:
+      - mysql
 
-volumes:
-  db_data:
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: eventnow_db
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
