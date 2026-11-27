@@ -1,0 +1,24 @@
+services:
+  app:
+    build: .
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: ${DB_DATABASE:-integrador}
+      DB_USERNAME: ${DB_USERNAME:-integrador}
+      DB_PASSWORD: ${DB_PASSWORD:-Senai123}
+    depends_on:
+      - db
+
+  db:
+    build: ./database
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-Senai123}
+      MYSQL_DATABASE: ${DB_DATABASE:-integrador}
+      MYSQL_USER: ${DB_USERNAME:-integrador}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-Senai123}
+    volumes:
+      - db_data:/var/lib/mysql
+
+volumes:
+  db_data:
