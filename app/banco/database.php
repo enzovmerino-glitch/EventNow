@@ -1,8 +1,8 @@
 <?php
-$host = 'mysql';
+$host = 'db';
 $db   = 'eventnow_db';
 $user = 'root';
-$pass = 'root';
+$pass = 'senai123';
 
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$db;charset=utf8", $user, $pass);
